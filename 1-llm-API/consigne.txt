@@ -1,0 +1,14 @@
+A. Utiliser un llm via une API
+
+1. Faire une fonction generateText(prompt: str) : str qui prend en entrée un prompt et envoie la requête à mistral via leur API.
+2. Tester votre fonction et vérifier qu'elle marche
+
+ 
+
+B. function calling 
+
+1. Créer une fonction “writeFile(path, content)” et une fonction launchPythonFile(path)
+2. Créer un prompt qui demande au llm de renvoyer un json avec le nom de lafonction et les argument à utiliser pour la fonction. Spécifier les deux fonctions qu'il a accès. 
+3. récupérer la sortie du LLm et lancer la fonction que le lllm vous demande de lancer
+4. Demander au llm d'écrire un fichier qui contiendra “hello world” en python
+5. Tester votre script, un fichier est-il créé
