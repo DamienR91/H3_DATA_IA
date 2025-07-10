@@ -62,7 +62,6 @@ def run_agent(prompt: str, max_step: int):
     """
     context = ""
     for step in range(max_step):
-        # On enrichit le prompt avec le contexte de la tâche précédente
         full_prompt = (
             "Tu es un agent Python autonome. Tu as accès aux fonctions suivantes :\n"
             "- writeFile(path, content) : écrit le contenu dans le fichier spécifié.\n"
