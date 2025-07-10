@@ -2,6 +2,8 @@ import os
 import json
 from mistralai import Mistral
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
+import requests
 
 load_dotenv()
 
@@ -23,6 +25,36 @@ def stop():
     print("L'agent a décidé d'arrêter.")
     return "stop"
 
+def listFiles(path):
+    """Liste les fichiers et dossiers dans le chemin donné."""
+    try:
+        files = os.listdir(path)
+        return files
+    except Exception as e:
+        return f"Erreur lors du listing : {e}"
+
+def runTests(path):
+    """Lance les tests unitaires sur le fichier ou dossier donné (pytest ou unittest)."""
+    import subprocess
+    try:
+        result = subprocess.run(['python3', '-m', 'pytest', path], capture_output=True, text=True)
+        return result.stdout + '\n' + result.stderr
+    except Exception as e:
+        return f"Erreur lors de l'exécution des tests : {e}"
+
+def scrapeUrl(url, selector=None):
+    """Fait du scraping sur l'URL donnée. Si selector est fourni, retourne le texte correspondant."""
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        if selector:
+            elements = soup.select(selector)
+            return [el.get_text(strip=True) for el in elements]
+        else:
+            return soup.get_text()
+    except Exception as e:
+        return f"Erreur scraping : {e}"
+
 
 def run_agent(prompt: str, max_step: int):
     """
@@ -32,18 +64,21 @@ def run_agent(prompt: str, max_step: int):
     for step in range(max_step):
         # On enrichit le prompt avec le contexte de la tâche précédente
         full_prompt = (
-            f"Tu as accès à trois fonctions :\n"
-            f"- writeFile(path, content) : écrit le contenu dans le fichier spécifié.\n"
-            f"- launchPythonFile(path) : exécute le fichier python spécifié.\n"
-            f"- stop() : arrête la boucle si tu as terminé la tâche.\n"
-            f"\n"
-            f"À chaque étape, tu reçois le contexte de la tâche précédente :\n"
+            "Tu es un agent Python autonome. Tu as accès aux fonctions suivantes :\n"
+            "- writeFile(path, content) : écrit le contenu dans le fichier spécifié.\n"
+            "- launchPythonFile(path) : exécute le fichier python spécifié.\n"
+            "- runTests(path) : lance les tests unitaires (pytest) sur le fichier ou dossier spécifié.\n"
+            "- listFiles(path) : liste les fichiers et dossiers dans le chemin donné.\n"
+            "- scrapeUrl(url, selector=None) : fait du scraping sur l'URL (optionnellement avec un sélecteur CSS).\n"
+            "- stop() : arrête la boucle si tu as terminé la tâche.\n"
+            "\n"
+            "À chaque étape, tu reçois le contexte de la tâche précédente :\n"
             f"{context}\n"
-            f"\n"
+            "\n"
             f"Ta tâche : {prompt}\n"
-            f"\n"
-            f"Réponds uniquement avec un JSON de la forme :"
-            f'{{"function": "NOM_DE_LA_FONCTION", "args": {{"arg1": "valeur1", ...}}}}'
+            "\n"
+            "Réponds uniquement avec un JSON de la forme :"
+            '{"function": "NOM_DE_LA_FONCTION", "args": {"arg1": "valeur1", ...}}'
         )
         chat_response = client.chat.complete(
             model=model,
@@ -62,13 +97,23 @@ def run_agent(prompt: str, max_step: int):
         if func_name == "writeFile":
             writeFile(**args)
             print(f"Fichier {args['path']} créé.")
-            output = launchPythonFile(args['path'])
-            print("Sortie :", output)
-            context = f"Fichier {args['path']} créé. Sortie : {output}"
+            context = f"Fichier {args['path']} créé."
         elif func_name == "launchPythonFile":
             output = launchPythonFile(**args)
             print("Sortie :", output)
             context = f"Sortie : {output}"
+        elif func_name == "runTests":
+            output = runTests(**args)
+            print("Résultat des tests :", output)
+            context = f"Résultat des tests : {output}"
+        elif func_name == "listFiles":
+            files = listFiles(**args)
+            print("Fichiers :", files)
+            context = f"Fichiers : {files}"
+        elif func_name == "scrapeUrl":
+            result = scrapeUrl(**args)
+            print("Résultat scraping :", result)
+            context = f"Résultat scraping : {result}"
         elif func_name == "stop":
             stop()
             break
@@ -120,4 +165,5 @@ def main():
         print("Fonction non reconnue.")
 
 if __name__ == "__main__":
-    main()
+    prompt = input("Entrez votre prompt : ")
+    run_agent(prompt, max_step=8)

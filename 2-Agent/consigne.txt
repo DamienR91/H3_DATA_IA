@@ -1,0 +1,2 @@
+Faire en sorte que l'agent soit capable de créer à la fois un code et les tests unitaire de ce code. Pour vérifier que le code marche il doit lancer les tests.
+Faire en sorte que l'agent dispose d'autres actions (par exemple faire du scrapping avec requests / beautiful soup) ou que l'agent dispose de la liste des fichiers du projet pour décider quel fichier éditer, etc.

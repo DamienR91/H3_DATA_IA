@@ -12,3 +12,10 @@ B. function calling
 3. récupérer la sortie du LLm et lancer la fonction que le lllm vous demande de lancer
 4. Demander au llm d'écrire un fichier qui contiendra “hello world” en python
 5. Tester votre script, un fichier est-il créé
+
+Faire en sorte que votre agent puisse désormais faire une série d'action. 
+Pour cela reprendre l'étape précédente et créer une fonction run_agent(prompt: str, max_step:int). 
+
+Cette fonction devra lancer le function calling dans une boucle et récupérer les informations de la tache précédente effectuée. 
+
+Penser à ajouter une fonction “stop” pour permettre à l'agent d'arrêter d'effectuer des tâches si il pense avoir fini
